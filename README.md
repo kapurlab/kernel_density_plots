@@ -17,20 +17,7 @@ conda env create -f environment.yml
 3. Activate the environment:
 
 ```bash
-conda activate kernel_density_plot
-```
-
-### Manual Installation (without Conda)
-
-If you prefer not to use Conda, you can install the dependencies manually using pip:
-
-```bash
-# Create a virtual environment
-python -m venv kernel_env
-source kernel_env/bin/activate  # On Windows: kernel_env\Scripts\activate
-
-# Install dependencies
-pip install numpy pandas matplotlib seaborn scipy biopython
+conda activate kernel_density_plots
 ```
 
 ## Usage
@@ -62,7 +49,7 @@ python kernel_plot.py [options] input.fasta
 ### Example:
 
 ```bash
-python kernel_plot.py --lineage=Lineage_4 --bin-size=20 input.fasta
+python kernel_plot.py --lineage="Lineage L2" --bin-size=20 La2_test.fasta
 ```
 
 ## Output Files
@@ -79,8 +66,3 @@ The tool generates the following output files in the specified output directory:
 8. `*_neighbor_bins.csv` - CSV file with neighbor histogram bin counts
 9. `*_density_stats.txt` - Text file with density statistics
 10. `*_neighbor_stats.txt` - Text file with neighbor statistics
-
-## Notes
-
-- The tool will automatically detect the lineage from the filename if the `--lineage` option is not provided.
-- The output format and analysis methodology match the original R script as closely as possible.

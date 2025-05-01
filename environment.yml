@@ -1,4 +1,4 @@
-name: kernel_density_plot
+name: kernel_density_plots
 channels:
   - conda-forge
   - bioconda
