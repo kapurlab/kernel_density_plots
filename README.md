@@ -1,4 +1,4 @@
-# Kernel Plot Tool
+# Kernel Density Plot Tool
 
 This is a Python implementation of the Kernel Plot Tool that generates SNP density and closest neighbor plots from FASTA files.
 
@@ -17,7 +17,7 @@ conda env create -f environment.yml
 3. Activate the environment:
 
 ```bash
-conda activate kernel_plot
+conda activate kernel_density_plot
 ```
 
 ### Manual Installation (without Conda)

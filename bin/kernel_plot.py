@@ -1,4 +1,6 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
+
+__version__ = "0.1"
 
 # Kernel Plot Tool
 # A command-line tool for SNP density and closest neighbor analysis
@@ -28,13 +30,12 @@ def parse_arguments():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog=textwrap.dedent('''
         Example:
-          python kernel_plot.py --lineage=Lineage_4 --bin-size=20 input.fasta
+          python kernel_plot.py --lineage=MyGroup --bin-size=20 input.fasta
         ''')
     )
-    parser.add_argument('input_fasta', type=str, help='Input FASTA file')
-    parser.add_argument('--lineage', type=str, default='Unknown',
-                        choices=['Lineage_1', 'Lineage_2', 'Lineage_3', 'Lineage_4', 'Bovis', 'Caprae', 'Orygis', 'Unknown'],
-                        help='Specify lineage (optional)')
+    parser.add_argument('-f', '--fasta', dest='input_fasta', type=str, required=True, help='Input FASTA file')
+    parser.add_argument('--lineage', type=str, default='',
+                        help='Specify lineage/group name (optional)')
     parser.add_argument('--outputdir', type=str, help='Output directory (default: creates folder next to input file)')
     parser.add_argument('--density-xlim', type=int, default=1400, help='Density plot X-axis limit (default: 1400)')
     parser.add_argument('--neighbor-xlim', type=int, default=600, help='Closest neighbor X-axis limit (default: 600)')
@@ -49,34 +50,13 @@ def parse_arguments():
     parser.add_argument('--theme', type=str, default='light',
                       choices=['light', 'minimal', 'classic', 'gray', 'dark', 'bw'],
                       help='Plot theme (default: light)')
+    parser.add_argument('-v', '--version', action='version', version=f'{os.path.basename(__file__)}: version {__version__}')
     
     if len(sys.argv) == 1:
         parser.print_help(sys.stderr)
         sys.exit(0)
         
     return parser.parse_args()
-
-def detect_lineage(filename):
-    """Detect lineage from filename"""
-    filename = filename.lower()
-    
-    lineage_patterns = {
-        "Lineage_1": ["lineage_1", "lineage1", "l1", "indo-oceanic", "eai"],
-        "Lineage_2": ["lineage_2", "lineage2", "l2", "beijing", "east-asian"],
-        "Lineage_3": ["lineage_3", "lineage3", "l3", "delhi", "central-asian"],
-        "Lineage_4": ["lineage_4", "lineage4", "l4", "euro-american"],
-        "Bovis": ["bovis", "bov"],
-        "Caprae": ["caprae", "cap"],
-        "Orygis": ["orygis", "ory"]
-    }
-    
-    for lineage_name, patterns in lineage_patterns.items():
-        for pattern in patterns:
-            if pattern in filename:
-                return lineage_name
-    
-    # Default to unknown
-    return "Unknown"
 
 def calculate_snp_distances(fasta_file):
     """Calculate SNP distances from FASTA file"""
@@ -256,33 +236,17 @@ def process_fasta(input_fasta, lineage, output_folder=None):
 def create_density_plot(result, xlim_max=1400, show_annotations=True,
                        title_size=20, axis_title_size=16, axis_text_size=12,
                        annotation_size=6, plot_theme='light', output_path=None):
-    """Create the kernel density plot with styling based on lineage"""
+    """Create the kernel density plot with styling"""
     # Read the lower triangle values
     my_data_num = result['lower_triangle_values']
     
     # Set xlims
     xlims = (0, xlim_max)
     
-    # Set colors based on lineage
-    lineage_colors = {
-        "Lineage_1": ["#F0E1B3", "#E7BD42", "black"],  # light pastel yellow, pastel yellow, black
-        "Lineage_2": ["#C1F0C1", "#6BCE7D", "black"],  # light mint green, mint green, black
-        "Lineage_3": ["#B3D9FF", "#4996D5", "black"],  # light sky blue, sky blue, black
-        "Lineage_4": ["#FEBAB3", "#E3687C", "black"],  # light coral pink, medium coral, black
-        "Caprae": ["#ADD8E6", "#1E90FF", "black"],     # light blue, dodger blue, black
-        "Orygis": ["#90EE90", "#32CD32", "black"],     # light green, lime green, black
-        "Bovis": ["#E6E6FA", "#9370DB", "red"]         # lavender, medium purple, red
-    }
-    
-    # Get colors for current lineage, default to first one if not found
-    if result['lineage'] not in lineage_colors:
-        colors = list(lineage_colors.values())[0]
-    else:
-        colors = lineage_colors[result['lineage']]
-    
-    polygon_fill_color = colors[0]
-    iqr_highlight_color = colors[1]
-    median_line_color = colors[2]
+    # Default colors for plots
+    polygon_fill_color = "#C1F0C1"  # Light mint green
+    iqr_highlight_color = "#6BCE7D"  # Medium mint green
+    median_line_color = "black"
     
     # For dark theme, ensure text is visible
     text_color = "white" if plot_theme == "dark" else "black"
@@ -337,8 +301,10 @@ def create_density_plot(result, xlim_max=1400, show_annotations=True,
     
     # Set title
     number_of_sequences = len(result['data'])
-    ax.set_title(f"{result['lineage']} SNP density plot (n = {number_of_sequences})", 
-                fontsize=title_size, fontweight='bold')
+    title_text = f"SNP density plot (n = {number_of_sequences})"
+    if result['lineage']:
+        title_text = f"{result['lineage']} {title_text}"
+    ax.set_title(title_text, fontsize=title_size, fontweight='bold')
     
     # Style the plot
     apply_panel_styling(ax, axis_text_size)
@@ -369,22 +335,8 @@ def create_closest_neighbor_plot(result, bin_size=25, xlim_max=600, show_annotat
     # Calculate median
     median_val = np.median(lowest_distances)
     
-    # Set colors based on lineage (same as density plot)
-    lineage_colors = {
-        "Lineage_1": "#F0E1B3",  # light pastel yellow
-        "Lineage_2": "#C1F0C1",  # light mint green
-        "Lineage_3": "#B3D9FF",  # light sky blue
-        "Lineage_4": "#FEBAB3",  # light coral pink
-        "Caprae": "#ADD8E6",     # light blue
-        "Orygis": "#90EE90",     # light green
-        "Bovis": "#E6E6FA"       # lavender
-    }
-    
-    # Get color for current lineage, default to first one if not found
-    if result['lineage'] not in lineage_colors:
-        fill_color = list(lineage_colors.values())[0]
-    else:
-        fill_color = lineage_colors[result['lineage']]
+    # Default color for plot
+    fill_color = "#C1F0C1"  # Light mint green
     
     # For dark theme, ensure text is visible
     text_color = "white" if plot_theme == "dark" else "black"
@@ -413,8 +365,10 @@ def create_closest_neighbor_plot(result, bin_size=25, xlim_max=600, show_annotat
     ax.set_ylabel("Frequency", fontsize=axis_title_size, fontweight='bold')
     
     # Set title
-    ax.set_title(f"{result['lineage']} Closest Neighbor (n = {len(result['data'])})", 
-                fontsize=title_size, fontweight='bold')
+    title_text = f"Closest Neighbor (n = {len(result['data'])})"
+    if result['lineage']:
+        title_text = f"{result['lineage']} {title_text}"
+    ax.set_title(title_text, fontsize=title_size, fontweight='bold')
     
     # Style the plot
     apply_panel_styling(ax, axis_text_size)
@@ -453,25 +407,13 @@ def create_combined_figure(result, density_xlim, neighbor_xlim, bin_size, show_a
     iqr_x = x[(x >= q1) & (x <= q3)]
     iqr_y = kde(iqr_x)
     
-    # Get colors for lineage
-    lineage_colors = {
-        "Lineage_1": ["#F0E1B3", "#E7BD42", "black"],
-        "Lineage_2": ["#C1F0C1", "#6BCE7D", "black"],
-        "Lineage_3": ["#B3D9FF", "#4996D5", "black"],
-        "Lineage_4": ["#FEBAB3", "#E3687C", "black"],
-        "Caprae": ["#ADD8E6", "#1E90FF", "black"],
-        "Orygis": ["#90EE90", "#32CD32", "black"],
-        "Bovis": ["#E6E6FA", "#9370DB", "red"]
-    }
-    
-    if result['lineage'] not in lineage_colors:
-        colors = list(lineage_colors.values())[0]
-    else:
-        colors = lineage_colors[result['lineage']]
+    # Default colors for plot
+    polygon_fill_color = "#C1F0C1"  # Light mint green
+    iqr_highlight_color = "#6BCE7D"  # Medium mint green
         
     # Plot density
-    ax1.fill_between(x, y, alpha=0.7, color=colors[0], edgecolor="#2c2c2c", linewidth=0.7)
-    ax1.fill_between(iqr_x, iqr_y, alpha=0.3, color=colors[1])
+    ax1.fill_between(x, y, alpha=0.7, color=polygon_fill_color, edgecolor="#2c2c2c", linewidth=0.7)
+    ax1.fill_between(iqr_x, iqr_y, alpha=0.3, color=iqr_highlight_color)
     
     # Add median line
     median_val = np.median(my_data_num)
@@ -510,17 +452,11 @@ def create_combined_figure(result, density_xlim, neighbor_xlim, bin_size, show_a
     np.fill_diagonal(data_float, np.nan)
     lowest_distances = np.nanmin(data_float, axis=1)
     
-    # Set colors for histogram
-    if result['lineage'] not in lineage_colors:
-        fill_color = list(lineage_colors.values())[0][0]
-    else:
-        fill_color = lineage_colors[result['lineage']][0]
-    
     # Create breaks for histogram
     breaks = np.arange(0, neighbor_xlim + bin_size, bin_size)
     
     # Plot histogram
-    n, bins, patches = ax2.hist(lowest_distances, bins=breaks, color=fill_color, 
+    n, bins, patches = ax2.hist(lowest_distances, bins=breaks, color=polygon_fill_color, 
                               edgecolor='black', alpha=0.7)
     
     # Add median line
@@ -543,8 +479,10 @@ def create_combined_figure(result, density_xlim, neighbor_xlim, bin_size, show_a
     apply_panel_styling(ax2, axis_text_size)
     
     # Add main title
-    plt.suptitle(f"{result['lineage']} - SNP Analysis", 
-                 fontsize=title_size, fontweight='bold')
+    title_text = "SNP Analysis"
+    if result['lineage']:
+        title_text = f"{result['lineage']} - {title_text}"
+    plt.suptitle(title_text, fontsize=title_size, fontweight='bold')
     
     # Adjust layout
     plt.tight_layout(rect=[0, 0, 1, 0.95])
@@ -608,18 +546,14 @@ def main():
     # Parse command line arguments
     args = parse_arguments()
     
-    # Auto-detect lineage from filename if not specified
-    if args.lineage == "Unknown":
-        detected_lineage = detect_lineage(os.path.basename(args.input_fasta))
-        if detected_lineage != "Unknown":
-            args.lineage = detected_lineage
-            print(f"Auto-detected lineage: {detected_lineage}")
-    
     # Display selected parameters
     print("\nKernel Plot Tool - Command Line Version")
     print("=============================================")
     print(f"Input file: {args.input_fasta}")
-    print(f"Lineage: {args.lineage}")
+    if args.lineage:
+        print(f"Group/Lineage: {args.lineage}")
+    else:
+        print("Group/Lineage: Not specified")
     print(f"Output directory: {args.outputdir if args.outputdir else 'Auto (next to input file)'}")
     print(f"Density plot X-limit: {args.density_xlim}")
     print(f"Neighbor plot X-limit: {args.neighbor_xlim}")

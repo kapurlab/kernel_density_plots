@@ -1,0 +1,13 @@
+name: kernel_density_plot
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+  - python=3.9
+  - numpy=1.24.*
+  - pandas=2.0.*
+  - matplotlib=3.7.*
+  - seaborn=0.12.*
+  - scipy=1.10.*
+  - biopython=1.81
