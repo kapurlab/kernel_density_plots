@@ -64,6 +64,8 @@ The tool generates the following output files in the specified output directory:
 9. `*_density_stats.txt` - Text file with density statistics
 10. `*_neighbor_stats.txt` - Text file with neighbor statistics
 
+# Interpreting the Kernel Density Plot
+
 ## Basic Interpretation
 
  Kernel Density Plot shows the distribution of SNP distances between isolates in a dataset. The x-axis represents the number of SNP differences, while the y-axis shows the density or frequency of those differences.
