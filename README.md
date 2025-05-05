@@ -1,17 +1,17 @@
 # Kernel Density Plot Tool
 
-This is a Python implementation of the Kernel Plot Tool that generates SNP density and closest neighbor plots from FASTA files.
+This is a Python implementation of the Kernel Plot Tool that generates SNP density and closest neighbor plots from aligned FASTA files.
 
 ## Installation
 
 ### Setting Up Conda Environment
 
-1. Make sure you have [Conda](https://docs.conda.io/en/latest/miniconda.html) installed on your system.
+1. Ensure [Conda](https://docs.conda.io/en/latest/miniconda.html) is installed on your system.
 
-2. Create a new conda environment using the provided `environment.yml` file:
+2. Create a new environment:
 
 ```bash
-conda env create -f environment.yml
+conda create -n kernel_density_plots kernel_density_plots
 ```
 
 3. Activate the environment:
@@ -25,32 +25,29 @@ conda activate kernel_density_plots
 The tool provides a command-line interface:
 
 ```bash
-python kernel_plot.py [options] input.fasta
+kernel_plot.py [options] -f input.fasta
 ```
 
-### Options:
-
-```
---lineage=NAME       Specify lineage (optional)
---outputdir=DIR      Output directory (default: creates folder next to input file)
---density-xlim=N     Density plot X-axis limit (default: 1400)
---neighbor-xlim=N    Closest neighbor X-axis limit (default: 600)
---bin-size=N         Histogram bin size (default: 25)
---width=N            Plot width in inches (default: 7)
---height=N           Plot height in inches (default: 5)
---title-size=N       Title text size (default: 18)
---axis-title-size=N  Axis title text size (default: 14)
---axis-text-size=N   Axis text size (default: 12)
---annotation-size=N  Annotation text size (default: 6)
---no-annotations     Hide text annotations on plots
---theme=NAME         Plot theme (light, minimal, classic, gray, dark, bw) (default: light)
-```
-
-### Example:
+## Test
 
 ```bash
-python kernel_plot.py --lineage="Lineage L2" --bin-size=20 La2_test.fasta
+cd ${HOME}
+mkdir kernel_test
+cd kernel_test
 ```
+
+Copy test file from conda install
+```bash
+cp -v $CONDA_PREFIX/share/kernel_density_plots/test/*fasta .
+```
+
+Run test file
+```bash
+kernel_plot.py --lineage="Lineage L2" --bin-size=20 -f La2_test.fasta
+```
+## Options
+
+See `kernel_plot.py -h` for full list of options
 
 ## Output Files
 
